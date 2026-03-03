@@ -12,10 +12,18 @@ import {
   createUserWithEmailAndPassword,
   type User,
 } from "firebase/auth";
-import { auth } from "../../firebase";
+import { auth, db } from "../../firebase"; // make sure db is exported
+import { doc, getDoc } from "firebase/firestore";
+
+interface AppUser {
+  uid: string;
+  email: string | null;
+  grade: string;
+  section: string;
+}
 
 interface AuthContextType {
-  user: User | null;
+  user: AppUser | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
@@ -25,12 +33,38 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AppUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        try {
+          const userDocRef = doc(db, "users", firebaseUser.uid);
+          const userSnap = await getDoc(userDocRef);
+
+          const userData = userSnap.exists()
+            ? userSnap.data()
+            : { grade: "", section: "" };
+
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            grade: userData.grade || "",
+            section: userData.section || "",
+          });
+        } catch (err) {
+          console.error("Failed to fetch user data:", err);
+          setUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email,
+            grade: "",
+            section: "",
+          });
+        }
+      } else {
+        setUser(null);
+      }
       setLoading(false);
     });
 

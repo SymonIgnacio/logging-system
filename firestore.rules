@@ -1,0 +1,147 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function currentUserDocExists() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+
+    function currentUser() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return currentUserDocExists() && currentUser().role == "admin";
+    }
+
+    function isStudent() {
+      return currentUserDocExists() && currentUser().role == "student";
+    }
+
+    function isSelf(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function myGrade() {
+      return currentUser().grade;
+    }
+
+    function mySection() {
+      return currentUser().section;
+    }
+
+    function hasOnlyUserFields(data) {
+      return data.keys().hasOnly(["email", "grade", "section", "role"]);
+    }
+
+    function hasOnlyLogFields(data) {
+      return data.keys().hasOnly([
+        "teacher",
+        "grade",
+        "section",
+        "subject",
+        "period",
+        "periodId",
+        "status",
+        "startTime",
+        "date",
+        "loggedBy"
+      ]);
+    }
+
+    function isValidRole(role) {
+      return role in ["admin", "student"];
+    }
+
+    function isValidLogStatus(status) {
+      return status in ["present", "late", "absent"];
+    }
+
+    function periodDoc(periodId) {
+      return get(/databases/$(database)/documents/periods/$(periodId)).data;
+    }
+
+    function periodExists(periodId) {
+      return exists(/databases/$(database)/documents/periods/$(periodId));
+    }
+
+    function studentCanCreateLog() {
+      return isStudent()
+        && hasOnlyLogFields(request.resource.data)
+        && request.resource.data.loggedBy == request.auth.uid
+        && request.resource.data.grade == myGrade()
+        && request.resource.data.section == mySection()
+        && request.resource.data.status is string
+        && isValidLogStatus(request.resource.data.status)
+        && request.resource.data.date is string
+        && request.resource.data.startTime is timestamp
+        && request.resource.data.periodId is string
+        && request.resource.data.teacher is string
+        && request.resource.data.subject is string
+        && request.resource.data.period is string
+        && periodExists(request.resource.data.periodId)
+        && periodDoc(request.resource.data.periodId).grade == myGrade()
+        && periodDoc(request.resource.data.periodId).section == mySection()
+        && request.resource.data.teacher == periodDoc(request.resource.data.periodId).teacher
+        && request.resource.data.subject == periodDoc(request.resource.data.periodId).subject
+        && request.resource.data.period == periodDoc(request.resource.data.periodId).period;
+    }
+
+    // users/{uid}
+    // - user reads own profile
+    // - admin manages all user documents
+    match /users/{userId} {
+      allow read: if isAdmin() || isSelf(userId);
+      allow create, update: if isAdmin()
+        && hasOnlyUserFields(request.resource.data)
+        && request.resource.data.email is string
+        && request.resource.data.grade is string
+        && request.resource.data.section is string
+        && request.resource.data.role is string
+        && isValidRole(request.resource.data.role);
+      allow delete: if isAdmin();
+    }
+
+    // periods/{periodId}
+    // - admin full access
+    // - student can only read own grade/section periods
+    match /periods/{periodId} {
+      allow read: if isAdmin()
+        || (isStudent()
+          && resource.data.grade == myGrade()
+          && resource.data.section == mySection());
+      allow create, update, delete: if isAdmin();
+    }
+
+    // logs/{logId}
+    // - admin can read/write all logs
+    // - students can create logs for their own class periods
+    // - students cannot read or modify log documents
+    match /logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAdmin() || studentCanCreateLog();
+      allow update, delete: if isAdmin();
+    }
+
+    // Master data collections are admin-managed.
+    match /sections/{sectionId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /subjects/{subjectId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /teachers/{teacherId} {
+      allow read, write: if isAdmin();
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

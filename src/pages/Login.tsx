@@ -1,15 +1,25 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      if (user.role === "admin") {
+        navigate("/");
+      } else {
+        navigate("/class-logger");
+      }
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -18,36 +28,33 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate("/"); // change if your dashboard route is different
-    } catch (err: any) {
-      setError(err.message || "Login failed");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Login failed";
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md bg-white p-8 rounded-2xl shadow-lg">
-        <h1 className="text-2xl font-bold text-center mb-6">
-          Sign in to your account
-        </h1>
+    <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="panel w-full max-w-sm p-6 md:p-7">
+        <h1 className="text-xl font-bold text-center mb-1">School Logging System</h1>
+        <p className="text-sm muted text-center mb-5">Sign in to continue</p>
 
         {error && (
-          <div className="mb-4 text-sm text-red-600 bg-red-100 p-3 rounded-lg">
+          <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-100 p-2.5 rounded-lg">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-3.5">
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Email
-            </label>
+            <label className="block text-sm font-medium mb-1">Email</label>
             <input
               type="email"
               required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
@@ -55,13 +62,11 @@ export default function Login() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">
-              Password
-            </label>
+            <label className="block text-sm font-medium mb-1">Password</label>
             <input
               type="password"
               required
-              className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
@@ -71,7 +76,7 @@ export default function Login() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition disabled:opacity-50"
+            className="btn-primary w-full"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

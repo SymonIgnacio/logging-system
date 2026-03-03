@@ -10,7 +10,6 @@ import {
   signOut,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
-  type User,
 } from "firebase/auth";
 import { auth, db } from "../../firebase"; // make sure db is exported
 import { doc, getDoc } from "firebase/firestore";
@@ -20,6 +19,7 @@ interface AppUser {
   email: string | null;
   grade: string;
   section: string;
+  role: "admin" | "student";
 }
 
 interface AuthContextType {
@@ -45,13 +45,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
           const userData = userSnap.exists()
             ? userSnap.data()
-            : { grade: "", section: "" };
+            : { grade: "", section: "", role: "student" };
 
           setUser({
             uid: firebaseUser.uid,
             email: firebaseUser.email,
             grade: userData.grade || "",
             section: userData.section || "",
+            role: userData.role || "student",
           });
         } catch (err) {
           console.error("Failed to fetch user data:", err);
@@ -60,6 +61,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             email: firebaseUser.email,
             grade: "",
             section: "",
+            role: "student",
           });
         }
       } else {
@@ -98,7 +100,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = (): AuthContextType => { // eslint-disable-line react-refresh/only-export-components
   const context = useContext(AuthContext);
   if (!context) {
     throw new Error("useAuth must be used within AuthProvider");

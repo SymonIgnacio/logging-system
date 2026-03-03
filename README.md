@@ -73,3 +73,30 @@ export default defineConfig([
 ```
 # logging-system
 # logging-system
+
+## Firestore Schema Visualization
+
+See the database structure and collection relations here:
+
+- [`docs/firestore-schema.md`](docs/firestore-schema.md)
+
+## Firebase Readiness Audit
+
+Run a schema/data readiness check (requires an admin account):
+
+```bash
+npm run audit:firebase -- --email <admin-email> --password <admin-password>
+```
+
+## Firestore Security Rules
+
+Database-level security rules are defined in:
+
+- [`firestore.rules`](firestore.rules)
+- [`firebase.json`](firebase.json)
+
+To deploy rules (Firebase CLI required):
+
+```bash
+firebase deploy --only firestore:rules,firestore:indexes
+```

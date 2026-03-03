@@ -7,16 +7,16 @@ export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="app-shell flex min-h-screen">
       <Sidebar
         isOpen={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
       />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0">
         <Header onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-3 md:p-4 lg:p-5">
           <Outlet />
         </main>
       </div>

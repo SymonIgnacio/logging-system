@@ -1,1 +1,96 @@
 @import "tailwindcss";
+
+:root {
+  --app-bg: #f4f6fb;
+  --panel-bg: #ffffff;
+  --muted-text: #4b5563;
+  --line: #e5e7eb;
+  --primary: #0f5de6;
+  --primary-strong: #0b4ac0;
+}
+
+body {
+  margin: 0;
+  background: radial-gradient(circle at top right, #eef3ff 0%, var(--app-bg) 45%);
+  color: #111827;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: transparent;
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 10px 24px -18px rgba(15, 23, 42, 0.45);
+}
+
+.panel-tight {
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  line-height: 1.4;
+  font-weight: 700;
+}
+
+.muted {
+  color: var(--muted-text);
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: var(--primary-strong);
+}
+
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-soft {
+  background: #eef2ff;
+  color: #1e3a8a;
+  border-radius: 10px;
+  padding: 0.45rem 0.75rem;
+  font-weight: 600;
+}
+
+.btn-danger {
+  background: #d92d20;
+  color: #fff;
+  border-radius: 10px;
+  padding: 0.55rem 0.85rem;
+  font-weight: 600;
+}
+
+.input {
+  width: 100%;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
+  padding: 0.52rem 0.75rem;
+  outline: none;
+  background: #fff;
+}
+
+.input:focus {
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+}

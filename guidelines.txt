@@ -1,0 +1,17 @@
+Logging System Guidelines
+
+Module 1: Login Page -
+Self Redirecting depending on the role(admin/student)
+
+Module 2: Teacher�s Logger Interface Page -
+Clients page for student use only, Logging of teachers attendance and start time of class
+
+Module 3: Admin Dashboard �
+Displays the count of on-going classes, unattended classes, waiting
+
+Module 4:Tracking Page(connected module to admin dashboard via logic of counts)
+Table for status of every classes in current day/real time with filtering of grade levels
+
+Module 5:Reports  page
+
+
